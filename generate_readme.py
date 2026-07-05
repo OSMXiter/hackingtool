@@ -1,8 +1,15 @@
+# coding=utf-8
 import re
+
+from rich.console import Console
+from rich.theme import Theme
 
 from core import HackingTool
 from core import HackingToolsCollection
 from hackingtool import all_tools
+
+_theme = Theme({"purple": "#7B61FF"})
+console = Console(theme=_theme)
 
 
 def sanitize_anchor(s):

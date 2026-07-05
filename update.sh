@@ -1,52 +1,34 @@
 #!/bin/bash
+set -euo pipefail
 
-RED='\e[1;31m'
-GREEN='\e[1;32m'
-YELLOW='\e[1;33m'
-BLUE='\e[1;34m'
+INSTALL_DIR="/usr/share/hackingtool"
 
-   ____   _____ __  ____   ___ _            
-  / __ \ / ____|  \/  \ \ / (_) |           
- | |  | | (___ | \  / |\ V / _| |_ ___ _ __ 
- | |  | |\___ \| |\/| | > < | | __/ _ \ '__|
- | |__| |____) | |  | |/ . \| | ||  __/ |   
-  \____/|_____/|_|  |_/_/ \_\_|\__\___|_|   
-                                            
-                                            
-
-# Check if the script is run as root
 if [[ $EUID -ne 0 ]]; then
-   echo -e "${RED}[ERROR]\e[0m This script must be run as root."
-   exit 1
+    echo "[ERROR] Run as root: sudo bash update.sh"
+    exit 1
 fi
 
-install_dir="/usr/share/hackingtool"
-# Change to the directory containing the install.sh script
-cd $install_dir || { echo -e "${RED}[ERROR]\e[0m Could not change to directory containing install.sh."; exit 1; }
-echo -e "${YELLOW}[*] Checking Internet Connection ..${NC}"
-echo "";
-if curl -s -m 10 https://www.google.com > /dev/null || curl -s -m 10 https://www.github.com > /dev/null; then
-    echo -e "${GREEN}[✔] Internet connection is OK [✔]${NC}"
-    echo ""
+if [[ ! -d "$INSTALL_DIR" ]]; then
+    echo "[ERROR] Installation not found at $INSTALL_DIR. Run install.py first."
+    exit 1
+fi
+
+echo "[*] Checking internet connection..."
+if ! curl -sSf --max-time 10 https://github.com > /dev/null; then
+    echo "[ERROR] No internet connection."
+    exit 1
+fi
+echo "[✔] Internet OK"
+
+echo "[*] Pulling latest changes..."
+git -C "$INSTALL_DIR" config --local safe.directory "$INSTALL_DIR"
+git -C "$INSTALL_DIR" pull --rebase
+
+echo "[*] Updating Python dependencies..."
+if [[ -f "$INSTALL_DIR/venv/bin/pip" ]]; then
+    "$INSTALL_DIR/venv/bin/pip" install -q --upgrade -r "$INSTALL_DIR/requirements.txt"
 else
-    echo -e "${RED}[✘] Please check your internet connection[✘]"
-    echo ""
-    exit 1
-fi
-echo -e "[*]Marking hackingtool directory as safe-directory"
-git config --global --add safe.directory $install_dir
-# Update the repository and the tool itself
-echo -e "${BLUE}[INFO]\e[0m Updating repository and tool..."
-if ! sudo git pull; then
-    echo -e "${RED}[ERROR]\e[0m Failed to update repository or tool."
-    exit 1
+    echo "[WARN] venv not found — skipping pip update. Run install.py to create it."
 fi
 
-# Re-run the installation script
-echo -e "${GREEN}[INFO]\e[0m Running installation script..."
-if ! sudo bash install.sh; then
-    echo -e "${RED}[ERROR]\e[0m Failed to run installation script."
-    exit 1
-fi
-
-echo -e "${GREEN}[SUCCESS]\e[0m Tool updated successfully."
+echo "[✔] Hackingtool updated. Run 'hackingtool' to start."
