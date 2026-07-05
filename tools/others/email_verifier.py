@@ -1,6 +1,7 @@
-# coding=utf-8
-from core import HackingTool
-from core import HackingToolsCollection
+from core import HackingTool, HackingToolsCollection, console
+
+from rich.panel import Panel
+from rich.prompt import Prompt
 
 
 class KnockMail(HackingTool):
@@ -17,4 +18,7 @@ class KnockMail(HackingTool):
 class EmailVerifyTools(HackingToolsCollection):
     TITLE = "Email Verify tools"
     TOOLS = [KnockMail()]
-    
+
+if __name__ == "__main__":
+    tools = EmailVerifyTools()
+    tools.show_options()

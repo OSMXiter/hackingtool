@@ -1,6 +1,8 @@
-# coding=utf-8
-from core import HackingTool
-from core import HackingToolsCollection
+from core import HackingTool, HackingToolsCollection, console
+
+from rich.panel import Panel
+from rich.prompt import Prompt
+from rich import box
 
 
 class EvilURL(HackingTool):
@@ -15,3 +17,7 @@ class EvilURL(HackingTool):
 class IDNHomographAttackTools(HackingToolsCollection):
     TITLE = "IDN Homograph Attack"
     TOOLS = [EvilURL()]
+
+if __name__ == "__main__":
+    tools = IDNHomographAttackTools()
+    tools.show_options()
